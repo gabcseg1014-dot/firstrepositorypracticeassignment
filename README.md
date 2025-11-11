@@ -1,2 +1,2 @@
-# firstrepositorypracticeassignment
+# TicTacToe
 For Comp Sci class
