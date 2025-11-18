@@ -1,14 +1,43 @@
 import tkinter as tk
+#Note- you cannot have two TKinter programs. Everything must be 
+#unified, otherwise it will not work.
+def create_centered_square(canvas, side_length, fill_color):
+    """Creates a square centered on the canvas."""
+    # These dimensions will be correct because update_idletasks() was called.
+    canvas_width = canvas.winfo_width()
+    canvas_height = canvas.winfo_height()
 
-# Create the main window
-window = tk.Tk()
-window.geometry("400x300") # Set the window size
+    # Calculate top-left corner coordinates for a centered square
+    x0 = (canvas_width - side_length) / 2
+    y0 = (canvas_height - side_length) / 2
+    x1 = x0 + side_length
+    y1 = y0 + side_length
+    # The outline="" argument removes the default black border
+    canvas.create_rectangle(x0, y0, x1, y1, fill=fill_color, outline="")
 
-# Change the background color of the whole window
-window.configure(bg="lightblue")
-# or use the shorthand
-# window['bg'] = 'lightblue' 
+def main():
+    root = tk.Tk()
+    root.title("Pastel Pink Square on Light Blue Background")
+    root.geometry("500x400") # Set a reasonable window size
 
+    # Set the background color of the main window to Light Blue
+    root.configure(bg="lightblue")
 
-# Start the GUI event loop
-window.mainloop()
+    # Create a canvas widget that fills the whole window
+    # We use 'highlightthickness=0' to remove the default canvas border
+    canvas = tk.Canvas(root, bg="lightblue", highlightthickness=0)
+    canvas.pack(fill=tk.BOTH, expand=True) # Makes canvas resize with window
+
+    square_side = 280 # Adjust square size as needed
+    pastel_pink = "#FFD1DC" # Hex code for pastel pink
+
+    # Use update_idletasks() to force the window dimensions to update
+    # before we try to calculate the center coordinates.
+    root.update_idletasks()
+    create_centered_square(canvas, square_side, pastel_pink)
+
+    # Start the GUI event loop
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
