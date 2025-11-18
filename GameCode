@@ -1,1 +1,14 @@
-GameC
+import tkinter as tk
+
+# Create the main window
+window = tk.Tk()
+window.geometry("400x300") # Set the window size
+
+# Change the background color of the whole window
+window.configure(bg="lightblue")
+# or use the shorthand
+# window['bg'] = 'lightblue' 
+
+
+# Start the GUI event loop
+window.mainloop()
