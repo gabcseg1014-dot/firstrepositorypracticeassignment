@@ -1,43 +1,79 @@
 import tkinter as tk
-#Note- you cannot have two TKinter programs. Everything must be 
-#unified, otherwise it will not work.
+
 def create_centered_square(canvas, side_length, fill_color):
-    """Creates a square centered on the canvas."""
-    # These dimensions will be correct because update_idletasks() was called.
+    """Creates a square centered on the canvas and returns its coordinates."""
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
 
-    # Calculate top-left corner coordinates for a centered square
     x0 = (canvas_width - side_length) / 2
     y0 = (canvas_height - side_length) / 2
     x1 = x0 + side_length
     y1 = y0 + side_length
-    # The outline="" argument removes the default black border
+
     canvas.create_rectangle(x0, y0, x1, y1, fill=fill_color, outline="")
+    return x0, y0, x1, y1
+
+
+def draw_cloud(canvas, x, y, size, color="white"):
+    """Draws a fluffy cloud made of overlapping ovals."""
+    canvas.create_oval(x - size * 0.8, y - size * 0.5, x, y + size * 0.2,
+                       fill=color, outline=color)
+    canvas.create_oval(x - size * 0.4, y - size * 0.8, x + size * 0.4, y,
+                       fill=color, outline=color)
+    canvas.create_oval(x, y - size * 0.5, x + size * 0.8, y + size * 0.2,
+                       fill=color, outline=color)
+    canvas.create_oval(x - size * 0.6, y - size * 0.2, x + size * 0.6, y + size * 0.5,
+                       fill=color, outline=color)
+
+
+def draw_tictactoe_grid(canvas, x0, y0, x1, y1,
+                        line_color="#FFFDD0", thickness=4):
+    """Draws a 3×3 tic-tac-toe grid inside the given rectangle."""
+    width = x1 - x0
+    height = y1 - y0
+
+    dx = width / 3
+    dy = height / 3
+
+    # Vertical lines
+    canvas.create_line(x0 + dx, y0, x0 + dx, y1,
+                       fill=line_color, width=thickness)
+    canvas.create_line(x0 + 2*dx, y0, x0 + 2*dx, y1,
+                       fill=line_color, width=thickness)
+
+    # Horizontal lines
+    canvas.create_line(x0, y0 + dy, x1, y0 + dy,
+                       fill=line_color, width=thickness)
+    canvas.create_line(x0, y0 + 2*dy, x1, y0 + 2*dy,
+                       fill=line_color, width=thickness)
+
 
 def main():
     root = tk.Tk()
-    root.title("Pastel Pink Square on Light Blue Background")
-    root.geometry("500x400") # Set a reasonable window size
-
-    # Set the background color of the main window to Light Blue
+    root.title("Pastel Pink Square with Cream Tic-Tac-Toe Grid")
+    root.geometry("500x400")
     root.configure(bg="lightblue")
 
-    # Create a canvas widget that fills the whole window
-    # We use 'highlightthickness=0' to remove the default canvas border
     canvas = tk.Canvas(root, bg="lightblue", highlightthickness=0)
-    canvas.pack(fill=tk.BOTH, expand=True) # Makes canvas resize with window
+    canvas.pack(fill=tk.BOTH, expand=True)
 
-    square_side = 280 # Adjust square size as needed
-    pastel_pink = "#FFD1DC" # Hex code for pastel pink
-
-    # Use update_idletasks() to force the window dimensions to update
-    # before we try to calculate the center coordinates.
     root.update_idletasks()
-    create_centered_square(canvas, square_side, pastel_pink)
 
-    # Start the GUI event loop
+    # ---- Clouds (background) ----
+    draw_cloud(canvas, 120, 80, 60)
+    draw_cloud(canvas, 350, 60, 50)
+    draw_cloud(canvas, 280, 150, 70)
+
+    # ---- Pink square ----
+    square_side = 280
+    pastel_pink = "#FFD1DC"
+    x0, y0, x1, y1 = create_centered_square(canvas, square_side, pastel_pink)
+
+    # ---- Cream tic-tac-toe grid ----
+    draw_tictactoe_grid(canvas, x0, y0, x1, y1)
+
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
