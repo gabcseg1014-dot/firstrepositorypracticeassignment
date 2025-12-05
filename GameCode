@@ -1,7 +1,6 @@
 import tkinter as tk
 
 def create_centered_square(canvas, side_length, fill_color):
-    """Creates a square centered on the canvas and returns its coordinates."""
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
 
@@ -15,7 +14,6 @@ def create_centered_square(canvas, side_length, fill_color):
 
 
 def draw_cloud(canvas, x, y, size, color="white"):
-    """Draws a fluffy cloud made of overlapping ovals."""
     canvas.create_oval(x - size * 0.8, y - size * 0.5, x, y + size * 0.2,
                        fill=color, outline=color)
     canvas.create_oval(x - size * 0.4, y - size * 0.8, x + size * 0.4, y,
@@ -26,52 +24,134 @@ def draw_cloud(canvas, x, y, size, color="white"):
                        fill=color, outline=color)
 
 
-def draw_tictactoe_grid(canvas, x0, y0, x1, y1,
-                        line_color="#FFFDD0", thickness=4):
-    """Draws a 3×3 tic-tac-toe grid inside the given rectangle."""
+def draw_tictactoe_grid(canvas, x0, y0, x1, y1, color="#FFFDD0", thickness=4):
     width = x1 - x0
     height = y1 - y0
-
     dx = width / 3
     dy = height / 3
 
-    # Vertical lines
-    canvas.create_line(x0 + dx, y0, x0 + dx, y1,
-                       fill=line_color, width=thickness)
-    canvas.create_line(x0 + 2*dx, y0, x0 + 2*dx, y1,
-                       fill=line_color, width=thickness)
+    for i in range(1, 3):
+        canvas.create_line(x0 + i * dx, y0, x0 + i * dx, y1,
+                           fill=color, width=thickness)
+        canvas.create_line(x0, y0 + i * dy, x1, y0 + i * dy,
+                           fill=color, width=thickness)
 
-    # Horizontal lines
-    canvas.create_line(x0, y0 + dy, x1, y0 + dy,
-                       fill=line_color, width=thickness)
-    canvas.create_line(x0, y0 + 2*dy, x1, y0 + 2*dy,
-                       fill=line_color, width=thickness)
+
+class TicTacToeGUI:
+    def __init__(self, root):
+        self.root = root
+        root.title("Pastel Pink Tic-Tac-Toe")
+        root.geometry("500x450")
+        root.configure(bg="lightblue")
+
+        self.canvas = tk.Canvas(root, bg="lightblue", highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        root.update_idletasks()
+
+        # Clouds
+        draw_cloud(self.canvas, 120, 80, 60)
+        draw_cloud(self.canvas, 350, 60, 50)
+        draw_cloud(self.canvas, 280, 150, 70)
+
+        # Create board
+        self.square_side = 280
+        self.pastel_pink = "#FFD1DC"
+        self.x0, self.y0, self.x1, self.y1 = create_centered_square(
+            self.canvas, self.square_side, self.pastel_pink
+        )
+        draw_tictactoe_grid(self.canvas, self.x0, self.y0, self.x1, self.y1)
+
+        # Game logic
+        self.board = [["" for _ in range(3)] for _ in range(3)]
+        self.turn = "X"
+        self.game_over = False
+
+        self.canvas.bind("<Button-1>", self.on_click)
+
+        # Restart button
+        self.restart_btn = tk.Button(
+            root, text="Restart", font=("Montserrat", 14),
+            command=self.restart_game
+        )
+        self.restart_btn.pack(pady=10)
+
+    def cell_coords(self, row, col):
+        """Return center of a board cell."""
+        dx = (self.x1 - self.x0) / 3
+        dy = (self.y1 - self.y0) / 3
+        cx = self.x0 + col * dx + dx / 2
+        cy = self.y0 + row * dy + dy / 2
+        return cx, cy
+
+    def on_click(self, event):
+        if self.game_over:
+            return
+
+        if not (self.x0 <= event.x <= self.x1 and self.y0 <= event.y <= self.y1):
+            return  # click outside board
+
+        dx = (self.x1 - self.x0) / 3
+        dy = (self.y1 - self.y0) / 3
+
+        col = int((event.x - self.x0) // dx)
+        row = int((event.y - self.y0) // dy)
+
+        if self.board[row][col] != "":
+            return
+
+        self.board[row][col] = self.turn
+        cx, cy = self.cell_coords(row, col)
+
+        self.canvas.create_text(
+            cx, cy, text=self.turn, font=("Montserrat", 48), fill="#333"
+        )
+
+        if self.check_win(self.turn):
+            self.show_message(f"{self.turn} wins!")
+            self.game_over = True
+        elif all(all(cell != "" for cell in row_) for row_ in self.board):
+            self.show_message("Draw!")
+            self.game_over = True
+        else:
+            self.turn = "O" if self.turn == "X" else "X"
+
+    def check_win(self, p):
+        b = self.board
+        return (
+            any(all(b[r][c] == p for c in range(3)) for r in range(3)) or  # rows
+            any(all(b[r][c] == p for r in range(3)) for c in range(3)) or  # cols
+            all(b[i][i] == p for i in range(3)) or                         # diag
+            all(b[i][2 - i] == p for i in range(3))                        # anti diag
+        )
+
+    def show_message(self, text):
+        self.canvas.create_text(
+            250, 30, text=text, font=("Montserrat", 24, "bold"), fill="black",
+            tag="msg"
+        )
+
+    def restart_game(self):
+        self.canvas.delete("all")
+
+        # redraw everything
+        draw_cloud(self.canvas, 120, 80, 60)
+        draw_cloud(self.canvas, 350, 60, 50)
+        draw_cloud(self.canvas, 280, 150, 70)
+
+        self.x0, self.y0, self.x1, self.y1 = create_centered_square(
+            self.canvas, self.square_side, self.pastel_pink
+        )
+        draw_tictactoe_grid(self.canvas, self.x0, self.y0, self.x1, self.y1)
+
+        self.board = [["" for _ in range(3)] for _ in range(3)]
+        self.turn = "X"
+        self.game_over = False
 
 
 def main():
     root = tk.Tk()
-    root.title("Pastel Pink Square with Cream Tic-Tac-Toe Grid")
-    root.geometry("500x400")
-    root.configure(bg="lightblue")
-
-    canvas = tk.Canvas(root, bg="lightblue", highlightthickness=0)
-    canvas.pack(fill=tk.BOTH, expand=True)
-
-    root.update_idletasks()
-
-    # ---- Clouds (background) ----
-    draw_cloud(canvas, 120, 80, 60)
-    draw_cloud(canvas, 350, 60, 50)
-    draw_cloud(canvas, 280, 150, 70)
-
-    # ---- Pink square ----
-    square_side = 280
-    pastel_pink = "#FFD1DC"
-    x0, y0, x1, y1 = create_centered_square(canvas, square_side, pastel_pink)
-
-    # ---- Cream tic-tac-toe grid ----
-    draw_tictactoe_grid(canvas, x0, y0, x1, y1)
-
+    TicTacToeGUI(root)
     root.mainloop()
 
 
