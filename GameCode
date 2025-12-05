@@ -1,5 +1,9 @@
 import tkinter as tk
 
+def rgb_to_hex(r, g, b):
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
 def create_centered_square(canvas, side_length, fill_color):
     canvas_width = canvas.winfo_width()
     canvas_height = canvas.winfo_height()
@@ -77,7 +81,6 @@ class TicTacToeGUI:
         self.restart_btn.pack(pady=10)
 
     def cell_coords(self, row, col):
-        """Return center of a board cell."""
         dx = (self.x1 - self.x0) / 3
         dy = (self.y1 - self.y0) / 3
         cx = self.x0 + col * dx + dx / 2
@@ -88,8 +91,9 @@ class TicTacToeGUI:
         if self.game_over:
             return
 
+        # Ignore clicks outside the board
         if not (self.x0 <= event.x <= self.x1 and self.y0 <= event.y <= self.y1):
-            return  # click outside board
+            return
 
         dx = (self.x1 - self.x0) / 3
         dy = (self.y1 - self.y0) / 3
@@ -97,16 +101,26 @@ class TicTacToeGUI:
         col = int((event.x - self.x0) // dx)
         row = int((event.y - self.y0) // dy)
 
+        # Ignore clicks on already filled cells
         if self.board[row][col] != "":
             return
 
+        # Mark the board
         self.board[row][col] = self.turn
         cx, cy = self.cell_coords(row, col)
 
+        # Set colors separately for X and O
+        if self.turn == "X":
+            fill_color = rgb_to_hex(255, 80, 120)   # pink X
+        else:
+            fill_color = rgb_to_hex(80, 120, 255)   # blue O
+
+        # Draw the mark
         self.canvas.create_text(
-            cx, cy, text=self.turn, font=("Montserrat", 48), fill="#333"
+            cx, cy, text=self.turn, font=("Montserrat", 48), fill=fill_color
         )
 
+        # Check for a win or draw
         if self.check_win(self.turn):
             self.show_message(f"{self.turn} wins!")
             self.game_over = True
@@ -114,27 +128,29 @@ class TicTacToeGUI:
             self.show_message("Draw!")
             self.game_over = True
         else:
+            # Switch turns
             self.turn = "O" if self.turn == "X" else "X"
 
     def check_win(self, p):
         b = self.board
         return (
-            any(all(b[r][c] == p for c in range(3)) for r in range(3)) or  # rows
-            any(all(b[r][c] == p for r in range(3)) for c in range(3)) or  # cols
-            all(b[i][i] == p for i in range(3)) or                         # diag
-            all(b[i][2 - i] == p for i in range(3))                        # anti diag
+            any(all(b[r][c] == p for c in range(3)) for r in range(3)) or
+            any(all(b[r][c] == p for r in range(3)) for c in range(3)) or
+            all(b[i][i] == p for i in range(3)) or
+            all(b[i][2 - i] == p for i in range(3))
         )
 
-    def show_message(self, text):
+    def show_message(self, text, rgb=(213, 164, 192)):
+        color = rgb_to_hex(*rgb)
         self.canvas.create_text(
-            250, 30, text=text, font=("Montserrat", 24, "bold"), fill="black",
-            tag="msg"
+            250, 30, text=text, font=("Montserrat", 24, "bold"),
+            fill=color, tag="msg"
         )
 
     def restart_game(self):
         self.canvas.delete("all")
 
-        # redraw everything
+        # Redraw everything
         draw_cloud(self.canvas, 120, 80, 60)
         draw_cloud(self.canvas, 350, 60, 50)
         draw_cloud(self.canvas, 280, 150, 70)
